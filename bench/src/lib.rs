@@ -1,3 +1,11 @@
+#![feature(
+    core_intrinsics,
+    const_eval_select,
+    slice_as_chunks,
+    portable_simd,
+    const_ptr_read,
+    const_slice_index
+)]
 use criterion::{measurement::Measurement, BenchmarkGroup, BenchmarkId, Criterion, Throughput};
 use simdutf8::basic::from_utf8 as basic_from_utf8;
 use simdutf8::compat::from_utf8 as compat_from_utf8;
@@ -6,6 +14,8 @@ use std::str::from_utf8 as std_from_utf8;
 
 #[cfg(feature = "simdjson")]
 use simdjson_utf8::validate as simdjson_validate;
+
+mod new;
 
 #[macro_use]
 mod macros;
@@ -30,6 +40,7 @@ pub enum BenchFn {
     BasicNoInline,
     Compat,
     Std,
+    New,
 
     #[cfg(feature = "simdjson")]
     Simdjson,
@@ -189,6 +200,17 @@ fn bench_input<M: Measurement>(
                 &input,
                 |b, &slice| {
                     b.iter(|| assert_eq!(compat_from_utf8(slice).is_ok(), expected_ok));
+                },
+            );
+        }
+        BenchFn::New => {
+            group.bench_with_input(
+                BenchmarkId::from_parameter(format!("{:06}", input.len())),
+                &input,
+                |b, &slice| {
+                    b.iter(|| {
+                        assert_eq!(crate::new::new_validate_utf8(slice).is_ok(), expected_ok)
+                    });
                 },
             );
         }

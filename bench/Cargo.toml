@@ -77,3 +77,8 @@ required-features = ["simdutf8_wasmtime"]
 name = "throughput_wasmtime_basic"
 harness = false
 required-features = ["simdutf8_wasmtime"]
+
+
+[[bench]]
+name = "throughput_new"
+harness = false
